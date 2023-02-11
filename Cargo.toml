@@ -7,4 +7,9 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4"
+actix-threadpool = "0.3.3"
 serde = { version = "1.0", features = ["derive"] }
+async-trait = "0.1.58"
+dotenv = { version = "0.15" }
+diesel = { version = "2", features = ["sqlite", "r2d2"] }
+diesel_migrations = "2.0.0"

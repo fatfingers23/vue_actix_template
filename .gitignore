@@ -1,2 +1,4 @@
 /target
 .idea
+.env
+vue-actix-template.db
