@@ -5,7 +5,7 @@ use diesel::query_dsl::positional_order_dsl::IntoOrderColumn;
 use std::process::id;
 use std::sync::Arc;
 
-use crate::data_access::databases::sqlite::DBConn;
+use crate::data_access::databases::postgresql::DBConn;
 use crate::data_access::error::DieselRepositoryError;
 use crate::data_access::models::todo::{CreateTodoDiesel, TodoDiesel};
 use crate::domain::models::todo::{CreateTodo, Todo};
@@ -28,18 +28,11 @@ impl TodoRepository for TodoDieselRepository {
         use crate::data_access::schema::todos::dsl::todos;
         let new_todo_diesel: CreateTodoDiesel = CreateTodoDiesel::from(new_todo.clone());
         let mut conn = self.pool.get().unwrap();
-        let _ = diesel::insert_into(todos)
-            .values(new_todo_diesel)
-            .execute(&mut conn);
-
-        let last_todo = todos
-            .order(id.desc())
-            .limit(1 as i64)
-            .load(&mut conn)?
-            .into_iter()
-            .rev()
-            .collect::<Vec<_>>();
-        Ok(last_todo[0].into())
+        let result: TodoDiesel = run(move || diesel::insert_into(todos).values(new_todo_diesel)
+            .get_result(&mut conn))
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+        Ok(result.into())
     }
 
     async fn list(&self, params: TodoQueryParams) -> RepositoryResult<ResultPaging<Todo>> {
