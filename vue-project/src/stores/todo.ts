@@ -1,15 +1,17 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { ref } from 'vue';
+import { defineStore } from 'pinia';
+import type {Todo} from '@/dtos/todo';
 
 export const useTodoStore = defineStore('todo', () => {
 
   //array of objects in typescript
 
-  const todos = ref<Array<Object>>([])
+  const todos = ref<Array<Todo>>([]);
 
-  function addTodo(todo: Object) {
+  function addTodo(todo: Todo) {
+
     todos.value.push(todo);
   }
 
-  return { todos, addTodo }
-})
+  return { todos, addTodo };
+});

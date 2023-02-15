@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Todo from '../views/TodoView.vue'
-import NotFound from '../views/NotFound.vue'
-import About from '../views/AboutView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import Todo from '../views/TodoView.vue';
+import NotFound from '../views/NotFound.vue';
+import About from '../views/AboutView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +21,6 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
   ]
-})
+});
 
-export default router
+export default router;
