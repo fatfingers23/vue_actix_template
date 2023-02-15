@@ -12,6 +12,6 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../src/spa'
+    outDir: '../spa'
   }
 })

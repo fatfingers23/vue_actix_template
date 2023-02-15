@@ -1,12 +1,17 @@
 use crate::api::controllers::hello_world_handler::{repeat_handler, say_hello_handler};
+use actix_files::{Files, NamedFile};
 use actix_web::body::MessageBody;
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 use actix_web::middleware::Logger;
-use actix_web::Error;
+use actix_web::{Error, guard, HttpRequest};
 use actix_web::{web, App};
 // use crate::api::controllers::todo_handler::{create_todo_handler, delete_todo_handler, get_todo_handler, list_todos_handler};
 // use crate::api::middleware::{ServiceContextMaintenanceCheck};
 use crate::container::Container;
+
+async fn index() -> Result<NamedFile, Error> {
+    Ok(NamedFile::open("./spa/index.html")?)
+}
 
 pub fn create_app() -> App<
     impl ServiceFactory<
@@ -29,5 +34,11 @@ pub fn create_app() -> App<
             web::scope("/api")
                 .service(say_hello_handler)
                 .service(repeat_handler),
+        )
+        .service(Files::new("/", "./spa").index_file("index.html"))
+        .default_service(
+            web::route()
+                .guard(guard::Not(guard::Get()))
+                .to(index),
         )
 }
