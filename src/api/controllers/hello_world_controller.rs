@@ -1,4 +1,4 @@
-use crate::api::dto::hello_world::{RepeatDTO, SayHelloDTO};
+use crate::api::view_models::hello_world::{RepeatDTO, SayHelloDTO};
 use crate::domain::error::ApiError;
 use actix_web::web::Path;
 use actix_web::{get, web, Result};

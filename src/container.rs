@@ -1,34 +1,28 @@
 use crate::data_access::databases::postgresql::db_pool;
-use crate::domain::repositories::todo::TodoRepository;
-use std::sync::Arc;
-// use crate::domain::services::service_context::ServiceContextService;
-// use crate::domain::services::todo::TodoService;
-// use crate::data_access::databases::postgresql::db_pool;
 use crate::data_access::repositories::todo::TodoDieselRepository;
-// use crate::data_access::services::service_context::ServiceContextServiceImpl;
-// use crate::services::todo::TodoServiceImpl;
+use crate::domain::repositories::todo::TodoRepository;
+use async_trait::async_trait;
+use std::sync::Arc;
 
 pub struct Container {
-    // pub todo_service: Arc<dyn TodoService>,
-    // pub service_context_service: Arc<dyn ServiceContextService>
+    pub todo_repository: Arc<dyn TodoRepository>,
 }
 
 impl Container {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
+        let db_pool = db_pool().await;
         let todo_repository: Arc<dyn TodoRepository> =
-            Arc::new(TodoDieselRepository::new(Arc::new(db_pool())));
-        // let todo_service = Arc::new(
-        //     TodoServiceImpl { repository: todo_repository }
-        // );
-        // let service_context_service = Arc::new(
-        //     ServiceContextServiceImpl::new(Arc::new(db_pool()))
-        // );
-        Container {}
+            Arc::new(TodoDieselRepository::new(Arc::new(db_pool)));
+
+        // let todo_service = Arc::new(TodoServiceImpl {
+        //     repository: todo_repository,
+        // });
+        Container { todo_repository }
     }
 }
 
-impl Default for Container {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// impl Default for Container {
+//     async fn default() -> Self {
+//         Self::new().await
+//     }
+// }

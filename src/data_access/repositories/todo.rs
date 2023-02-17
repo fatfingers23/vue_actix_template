@@ -1,16 +1,17 @@
+use crate::data_access::databases::postgresql::DBConn;
+use crate::data_access::diesel_models::todo::{CreateTodoDiesel, TodoDiesel};
+use crate::data_access::error::DieselRepositoryError;
+use crate::data_access::schema::todos::session_id;
+use crate::domain::dto::todo::{CreateTodo, Todo};
+use crate::domain::repositories::repository::RepositoryResult;
+use crate::domain::repositories::todo::TodoRepository;
 use actix_threadpool::run;
 use async_trait::async_trait;
 use diesel::prelude::*;
-use diesel::query_dsl::positional_order_dsl::IntoOrderColumn;
-use std::process::id;
-use std::sync::Arc;
+use diesel::query_dsl::QueryDsl;
 
-use crate::data_access::databases::postgresql::DBConn;
-use crate::data_access::error::DieselRepositoryError;
-use crate::data_access::models::todo::{CreateTodoDiesel, TodoDiesel};
-use crate::domain::models::todo::{CreateTodo, Todo};
-use crate::domain::repositories::repository::{QueryParams, RepositoryResult, ResultPaging};
-use crate::domain::repositories::todo::{TodoQueryParams, TodoRepository};
+use diesel_async::RunQueryDsl;
+use std::sync::Arc;
 
 pub struct TodoDieselRepository {
     pub pool: Arc<DBConn>,
@@ -27,49 +28,50 @@ impl TodoRepository for TodoDieselRepository {
     async fn create(&self, new_todo: &CreateTodo) -> RepositoryResult<Todo> {
         use crate::data_access::schema::todos::dsl::todos;
         let new_todo_diesel: CreateTodoDiesel = CreateTodoDiesel::from(new_todo.clone());
-        let mut conn = self.pool.get().unwrap();
-        let result: TodoDiesel = run(move || diesel::insert_into(todos).values(new_todo_diesel)
-            .get_result(&mut conn))
+        let mut conn = self
+            .pool
+            .get()
             .await
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+        let result: TodoDiesel = diesel::insert_into(todos)
+            .values(new_todo_diesel)
+            .get_result(&mut conn)
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+
         Ok(result.into())
     }
 
-    async fn list(&self, params: TodoQueryParams) -> RepositoryResult<ResultPaging<Todo>> {
+    async fn list_by_session_id(&self, id: i32) -> RepositoryResult<Vec<Todo>> {
         use crate::data_access::schema::todos::dsl::todos;
-        let pool = self.pool.clone();
-        let builder = todos.limit(params.limit()).offset(params.offset());
-        let result = run(move || {
-            let mut conn = pool.get().unwrap();
-            builder.load::<TodoDiesel>(&mut conn)
-        })
-        .await
-        .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
-        Ok(ResultPaging {
-            total: 0,
-            items: result.into_iter().map(|v| v.into()).collect(),
-        })
-    }
-
-    async fn get(&self, todo_id: i32) -> RepositoryResult<Todo> {
-        use crate::data_access::schema::todos::dsl::{id, todos};
-        let mut conn = self.pool.get().unwrap();
-        run(move || todos.filter(id.eq(todo_id)).first::<TodoDiesel>(&mut conn))
+        let mut conn = self
+            .pool
+            .get()
             .await
-            .map_err(|v| DieselRepositoryError::from(v).into_inner())
-            .map(|v| -> Todo { v.into() })
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+
+        let result = todos
+            .filter(session_id.eq(id))
+            .load::<TodoDiesel>(&mut conn)
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+        Ok(result.into_iter().map(|v| v.into()).collect())
     }
 
-    async fn delete(&self, todo_id: i32) -> RepositoryResult<()> {
+    async fn delete(&self, todo_id: i32, todo_session_id: i32) -> RepositoryResult<()> {
         use crate::data_access::schema::todos::dsl::{id, todos};
-        let mut conn = self.pool.get().unwrap();
-        run(move || {
-            diesel::delete(todos)
-                .filter(id.eq(todo_id))
-                .execute(&mut conn)
-        })
-        .await
-        .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+
+        diesel::delete(todos)
+            .filter(id.eq(todo_session_id))
+            .filter(session_id.eq(session_id))
+            .execute(&mut conn)
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
         Ok(())
     }
 }

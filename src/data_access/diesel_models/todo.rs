@@ -1,14 +1,14 @@
 use crate::data_access::schema::todos;
-use crate::domain::models::todo::{CreateTodo, Todo};
+use crate::domain::dto::todo::{CreateTodo, Todo};
 use diesel;
 use diesel::prelude::*;
 
 #[derive(Queryable)]
 pub struct TodoDiesel {
     pub id: i32,
-    pub title: String,
     pub description: String,
     pub completed: bool,
+    pub session_id: i32,
 }
 
 // Factory method for creating a new TodoDiesel from a Todo
@@ -16,9 +16,9 @@ impl From<Todo> for TodoDiesel {
     fn from(t: Todo) -> Self {
         TodoDiesel {
             id: t.id,
-            title: t.title,
             description: t.description,
             completed: t.completed,
+            session_id: t.session_id,
         }
     }
 }
@@ -26,8 +26,8 @@ impl From<Todo> for TodoDiesel {
 #[derive(Insertable)]
 #[diesel(table_name = todos)]
 pub struct CreateTodoDiesel {
-    pub title: String,
     pub description: String,
+    pub session_id: i32,
 }
 
 // Factory method for creating a new Todo from a TodoDiesel
@@ -35,9 +35,9 @@ impl Into<Todo> for TodoDiesel {
     fn into(self) -> Todo {
         Todo {
             id: self.id,
-            title: self.title,
             description: self.description,
             completed: self.completed,
+            session_id: self.session_id,
         }
     }
 }
@@ -45,8 +45,8 @@ impl Into<Todo> for TodoDiesel {
 impl From<CreateTodo> for CreateTodoDiesel {
     fn from(t: CreateTodo) -> Self {
         CreateTodoDiesel {
-            title: t.title,
             description: t.description,
+            session_id: t.session_id,
         }
     }
 }
@@ -55,9 +55,9 @@ impl Into<Todo> for CreateTodoDiesel {
     fn into(self) -> Todo {
         Todo {
             id: 0,
-            title: self.title,
             description: self.description,
             completed: false,
+            session_id: self.session_id,
         }
     }
 }

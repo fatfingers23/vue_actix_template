@@ -1,3 +1,3 @@
 pub mod controllers;
-pub mod dto;
+pub mod view_models;
 // pub mod middleware;

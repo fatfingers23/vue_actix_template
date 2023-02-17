@@ -1,6 +1,9 @@
 use crate::domain::error::RepositoryError;
 pub use actix_threadpool::{run, BlockingError};
+use bb8::RunError;
 use diesel::r2d2;
+
+use diesel_async::pooled_connection::PoolError;
 
 pub type AsyncPoolError<T> = BlockingError<T>;
 
@@ -31,6 +34,14 @@ impl From<diesel::result::Error> for DieselRepositoryError {
 
 impl<T: std::fmt::Debug> From<AsyncPoolError<T>> for DieselRepositoryError {
     fn from(error: AsyncPoolError<T>) -> DieselRepositoryError {
+        DieselRepositoryError(RepositoryError {
+            message: error.to_string(),
+        })
+    }
+}
+
+impl From<RunError<PoolError>> for DieselRepositoryError {
+    fn from(error: RunError<PoolError>) -> DieselRepositoryError {
         DieselRepositoryError(RepositoryError {
             message: error.to_string(),
         })

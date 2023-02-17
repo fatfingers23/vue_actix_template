@@ -1,5 +1,5 @@
 pub mod databases;
+pub mod diesel_models;
 pub mod error;
-pub mod models;
 pub mod repositories;
 pub mod schema;

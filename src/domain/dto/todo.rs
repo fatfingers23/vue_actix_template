@@ -1,15 +1,15 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Todo {
     pub id: i32,
-    pub title: String,
     pub description: String,
     pub completed: bool,
+    pub session_id: i32,
 }
 
 #[derive(Clone)]
 pub struct CreateTodo {
-    pub title: String,
     pub description: String,
+    pub session_id: i32,
 }

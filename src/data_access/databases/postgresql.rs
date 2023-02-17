@@ -1,22 +1,18 @@
-use std::env;
-
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::r2d2;
-use diesel::r2d2::ConnectionManager;
-use dotenv::dotenv;
+use diesel_async::pg::AsyncPgConnection;
+use diesel_async::pooled_connection::{bb8::Pool as OtherPool, AsyncDieselConnectionManager};
+use std::env;
 
-
-pub type Pool<T> = r2d2::Pool<ConnectionManager<T>>;
-pub type PostgresPool = Pool<diesel::pg::PgConnection>;
+pub type Pool<T> = bb8::Pool<AsyncDieselConnectionManager<T>>;
+pub type PostgresPool = Pool<AsyncPgConnection>;
 pub type DBConn = PostgresPool;
 
-pub fn db_pool() -> DBConn {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL")
-        .expect(&*format!("{value} must be set", value = "DATABASE_URL"));
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool")
+pub async fn db_pool() -> DBConn {
+    let database_url =
+        env::var("DATABASE_URL").expect(&*format!("{value} must be set", value = "DATABASE_URL"));
+
+    let config = AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url);
+    Pool::builder().build(config).await.unwrap()
 }
