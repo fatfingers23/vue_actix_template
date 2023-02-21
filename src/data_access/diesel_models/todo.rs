@@ -2,13 +2,14 @@ use crate::data_access::schema::todos;
 use crate::domain::dto::todo::{CreateTodo, Todo};
 use diesel;
 use diesel::prelude::*;
+use uuid::Uuid;
 
 #[derive(Queryable)]
 pub struct TodoDiesel {
     pub id: i32,
     pub description: String,
     pub completed: bool,
-    pub session_id: i32,
+    pub session_id: Uuid,
 }
 
 // Factory method for creating a new TodoDiesel from a Todo
@@ -27,7 +28,7 @@ impl From<Todo> for TodoDiesel {
 #[diesel(table_name = todos)]
 pub struct CreateTodoDiesel {
     pub description: String,
-    pub session_id: i32,
+    pub session_id: Uuid,
 }
 
 // Factory method for creating a new Todo from a TodoDiesel

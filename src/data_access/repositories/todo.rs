@@ -12,6 +12,7 @@ use diesel::query_dsl::QueryDsl;
 
 use diesel_async::RunQueryDsl;
 use std::sync::Arc;
+use uuid::Uuid;
 
 pub struct TodoDieselRepository {
     pub pool: Arc<DBConn>,
@@ -42,7 +43,7 @@ impl TodoRepository for TodoDieselRepository {
         Ok(result.into())
     }
 
-    async fn list_by_session_id(&self, id: i32) -> RepositoryResult<Vec<Todo>> {
+    async fn list_by_session_id(&self, id: Uuid) -> RepositoryResult<Vec<Todo>> {
         use crate::data_access::schema::todos::dsl::todos;
         let mut conn = self
             .pool
@@ -58,7 +59,7 @@ impl TodoRepository for TodoDieselRepository {
         Ok(result.into_iter().map(|v| v.into()).collect())
     }
 
-    async fn delete(&self, todo_id: i32, todo_session_id: i32) -> RepositoryResult<()> {
+    async fn delete(&self, todo_id: i32, todo_session_id: Uuid) -> RepositoryResult<()> {
         use crate::data_access::schema::todos::dsl::{id, todos};
         let mut conn = self
             .pool
@@ -67,8 +68,8 @@ impl TodoRepository for TodoDieselRepository {
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
 
         diesel::delete(todos)
-            .filter(id.eq(todo_session_id))
-            .filter(session_id.eq(session_id))
+            .filter(id.eq(todo_id))
+            .filter(session_id.eq(todo_session_id))
             .execute(&mut conn)
             .await
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;

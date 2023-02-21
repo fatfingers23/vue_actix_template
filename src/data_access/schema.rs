@@ -5,6 +5,6 @@ diesel::table! {
         id -> Int4,
         description -> Text,
         completed -> Bool,
-        session_id -> Int4,
+        session_id -> Uuid,
     }
 }
