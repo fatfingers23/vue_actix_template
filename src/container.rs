@@ -1,7 +1,6 @@
 use crate::data_access::databases::postgresql::db_pool;
 use crate::data_access::repositories::todo::TodoDieselRepository;
 use crate::domain::repositories::todo::TodoRepository;
-use async_trait::async_trait;
 use std::sync::Arc;
 
 pub struct Container {
@@ -13,16 +12,6 @@ impl Container {
         let db_pool = db_pool().await;
         let todo_repository: Arc<dyn TodoRepository> =
             Arc::new(TodoDieselRepository::new(Arc::new(db_pool)));
-
-        // let todo_service = Arc::new(TodoServiceImpl {
-        //     repository: todo_repository,
-        // });
         Container { todo_repository }
     }
 }
-
-// impl Default for Container {
-//     async fn default() -> Self {
-//         Self::new().await
-//     }
-// }

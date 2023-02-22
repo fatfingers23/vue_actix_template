@@ -1,8 +1,5 @@
-use diesel;
-use diesel::pg::PgConnection;
-use diesel::r2d2;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::pooled_connection::{bb8::Pool as OtherPool, AsyncDieselConnectionManager};
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use std::env;
 
 pub type Pool<T> = bb8::Pool<AsyncDieselConnectionManager<T>>;

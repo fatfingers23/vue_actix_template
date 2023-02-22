@@ -2,7 +2,6 @@ use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
 use actix_session::storage::CookieSessionStore;
 use actix_session::SessionMiddleware;
-use actix_web::cookie::Expiration::Session;
 use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::{guard, Error, HttpServer};
@@ -12,9 +11,7 @@ use std::env;
 use vue_actix_template::api::controllers::hello_world_controller::{
     repeat_handler, say_hello_handler,
 };
-use vue_actix_template::api::controllers::todo_controller::{
-    complete_todo_handler, create_todo_handler, delete_todo_handler, list_todos_handler,
-};
+use vue_actix_template::api::controllers::todo_controller::todo_controller;
 use vue_actix_template::container::Container;
 use vue_actix_template::middleware::get_user_id::GetUserId;
 
@@ -57,13 +54,7 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api")
                     .service(say_hello_handler)
                     .service(repeat_handler)
-                    .service(
-                        web::scope("/todo")
-                            .service(list_todos_handler)
-                            .service(create_todo_handler)
-                            .service(delete_todo_handler)
-                            .service(complete_todo_handler),
-                    ),
+                    .service(todo_controller()),
             )
             .service(Files::new("/", "./spa").index_file("index.html"))
             .default_service(web::route().guard(guard::Not(guard::Get())).to(index))

@@ -1,14 +1,10 @@
-use actix_session::{SessionExt};
-use std::future::{ready, Ready};
-
-use crate::data_access::schema::todos::session_id;
-use crate::domain::dto::todo::Todo;
-use actix_web::dev::Response;
+use actix_session::SessionExt;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpMessage,
+    Error,
 };
-use diesel_async::RunQueryDsl;
+use std::future::{ready, Ready};
+
 use futures_util::future::LocalBoxFuture;
 use uuid::Uuid;
 
@@ -22,10 +18,10 @@ pub struct GetUserId;
 // `S` - type of the next service
 // `B` - type of response's body
 impl<S, B> Transform<S, ServiceRequest> for GetUserId
-    where
-        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
-        S::Future: 'static,
-        B: 'static,
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -43,10 +39,10 @@ pub struct GetUserIdMiddleware<S> {
 }
 
 impl<S, B> Service<ServiceRequest> for GetUserIdMiddleware<S>
-    where
-        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
-        S::Future: 'static,
-        B: 'static,
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -63,7 +59,9 @@ impl<S, B> Service<ServiceRequest> for GetUserIdMiddleware<S>
                 } else {
                     let new_user_id = Uuid::new_v4();
                     println!("new SESSION value: {}", new_user_id);
-                    req.get_session().insert(user_key, new_user_id).expect("Failed to insert session value");
+                    req.get_session()
+                        .insert(user_key, new_user_id)
+                        .expect("Failed to insert session value");
                 }
             }
             Err(e) => {

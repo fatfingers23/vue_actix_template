@@ -1,17 +1,9 @@
-use crate::api::view_models::hello_world::{RepeatDTO, SayHelloDTO};
 use crate::domain::dto::todo::{CreateTodo, CreateTodoDTO, Todo};
 use crate::domain::error::{ApiError, CommonError};
 use crate::domain::repositories::todo::TodoRepository;
 use actix_session::Session;
-use actix_web::{delete, get, patch, post, web, HttpRequest, HttpResponse, Result};
-use diesel::insert_into;
+use actix_web::{delete, get, patch, post, web, HttpRequest, HttpResponse, Result, Scope};
 use uuid::Uuid;
-
-pub async fn say_hello_handler() -> Result<web::Json<SayHelloDTO>, ApiError> {
-    Ok(web::Json(SayHelloDTO {
-        message: "Hello World!".to_string(),
-    }))
-}
 
 #[get("/list")]
 pub async fn list_todos_handler(
@@ -85,6 +77,14 @@ pub async fn complete_todo_handler(
             code: 500,
         })),
     }
+}
+
+pub fn todo_controller() -> Scope {
+    web::scope("/todo")
+        .service(list_todos_handler)
+        .service(create_todo_handler)
+        .service(delete_todo_handler)
+        .service(complete_todo_handler)
 }
 
 fn todo_id_extractor(req: &HttpRequest) -> Result<i32, ApiError> {
