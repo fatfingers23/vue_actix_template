@@ -1,4 +1,4 @@
-use actix_session::{SessionExt, SessionGetError};
+use actix_session::{SessionExt};
 use std::future::{ready, Ready};
 
 use crate::data_access::schema::todos::session_id;
@@ -22,10 +22,10 @@ pub struct GetUserId;
 // `S` - type of the next service
 // `B` - type of response's body
 impl<S, B> Transform<S, ServiceRequest> for GetUserId
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-    B: 'static,
+    where
+        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
+        S::Future: 'static,
+        B: 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -43,10 +43,10 @@ pub struct GetUserIdMiddleware<S> {
 }
 
 impl<S, B> Service<ServiceRequest> for GetUserIdMiddleware<S>
-where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-    B: 'static,
+    where
+        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error>,
+        S::Future: 'static,
+        B: 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -56,7 +56,6 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let user_key = "user_id";
-
         match req.get_session().get::<Uuid>(user_key) {
             Ok(possible_id) => {
                 if let Some(id) = possible_id {
@@ -64,7 +63,7 @@ where
                 } else {
                     let new_user_id = Uuid::new_v4();
                     println!("new SESSION value: {}", new_user_id);
-                    req.get_session().insert(user_key, new_user_id).unwrap();
+                    req.get_session().insert(user_key, new_user_id).expect("Failed to insert session value");
                 }
             }
             Err(e) => {

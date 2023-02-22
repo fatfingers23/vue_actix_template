@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::from(container.todo_repository.clone()))
             .wrap(Logger::default())
+            .wrap(GetUserId)
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), session_key.clone())
                     .cookie_path("/".to_string())
@@ -44,7 +45,6 @@ async fn main() -> std::io::Result<()> {
                     .cookie_secure(false)
                     .build(),
             )
-            .wrap(GetUserId)
             .service(
                 web::scope("/api")
                     .service(say_hello_handler)
