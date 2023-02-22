@@ -3,11 +3,9 @@ use crate::domain::dto::todo::{CreateTodo, CreateTodoDTO, Todo};
 use crate::domain::error::{ApiError, CommonError};
 use crate::domain::repositories::todo::TodoRepository;
 use actix_session::Session;
-use actix_web::{get, web, HttpRequest, Result, post, delete, HttpResponse, patch};
+use actix_web::{delete, get, patch, post, web, HttpRequest, HttpResponse, Result};
 use diesel::insert_into;
 use uuid::Uuid;
-
-
 
 pub async fn say_hello_handler() -> Result<web::Json<SayHelloDTO>, ApiError> {
     Ok(web::Json(SayHelloDTO {
@@ -21,8 +19,6 @@ pub async fn list_todos_handler(
     session: Session,
 ) -> Result<web::Json<Vec<Todo>>, ApiError> {
     let session_id = session.get::<Uuid>("user_id").unwrap().unwrap();
-
-    println!("session_id: {:?}", session_id);
     let todos = todo_repo.list_by_session_id(session_id).await;
     match todos {
         Ok(todos) => Ok(web::Json(todos)),
@@ -61,13 +57,7 @@ pub async fn delete_todo_handler(
     session: Session,
 ) -> Result<HttpResponse, ApiError> {
     let session_id = session.get::<Uuid>("user_id").unwrap().unwrap();
-    let todo_id: i32 = match req.match_info().get("todo_id"){
-        Some(id) => id.parse().unwrap(),
-        None => return Err(ApiError::from(CommonError {
-            message: "No todo_id provided".to_string(),
-            code: 500,
-        })),
-    };
+    let todo_id: i32 = todo_id_extractor(&req).unwrap();
 
     let result = todo_repo.delete(todo_id, session_id).await;
     match result {
@@ -83,15 +73,11 @@ pub async fn delete_todo_handler(
 pub async fn complete_todo_handler(
     req: HttpRequest,
     todo_repo: web::Data<dyn TodoRepository>,
+    session: Session,
 ) -> Result<HttpResponse, ApiError> {
-    let todo_id: i32 = match req.match_info().get("todo_id"){
-        Some(id) => id.parse().unwrap(),
-        None => return Err(ApiError::from(CommonError {
-            message: "No todo_id provided".to_string(),
-            code: 500,
-        })),
-    };
-    let result = todo_repo.complete_todo(todo_id).await;
+    let session_id = session.get::<Uuid>("user_id").unwrap().unwrap();
+    let todo_id: i32 = todo_id_extractor(&req).unwrap();
+    let result = todo_repo.complete_todo(todo_id, session_id).await;
     match result {
         Ok(_) => Ok(HttpResponse::Ok().finish()),
         Err(e) => Err(ApiError::from(CommonError {
@@ -99,4 +85,17 @@ pub async fn complete_todo_handler(
             code: 500,
         })),
     }
+}
+
+fn todo_id_extractor(req: &HttpRequest) -> Result<i32, ApiError> {
+    let todo_id: i32 = match req.match_info().get("todo_id") {
+        Some(id) => id.parse().unwrap(),
+        None => {
+            return Err(ApiError::from(CommonError {
+                message: "No todo_id provided".to_string(),
+                code: 500,
+            }));
+        }
+    };
+    Ok(todo_id)
 }

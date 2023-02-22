@@ -6,7 +6,7 @@ import type {Todo} from '@/dtos/todo';
 
 const todoStore = useTodoStore();
 const todo = ref<Todo>({} as Todo);
-
+todoStore.loadTodos();
 const addANewTodo = () => {
   if (todo.value.description == undefined) {
     return;

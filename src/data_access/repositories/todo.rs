@@ -75,7 +75,7 @@ impl TodoRepository for TodoDieselRepository {
         Ok(())
     }
 
-    async fn complete_todo(&self, todo_id: i32) -> RepositoryResult<()> {
+    async fn complete_todo(&self, todo_id: i32, user_session_id: Uuid) -> RepositoryResult<()> {
         use crate::data_access::schema::todos::dsl::{id, todos};
         let mut conn = self
             .pool
@@ -83,8 +83,10 @@ impl TodoRepository for TodoDieselRepository {
             .await
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
 
-        diesel::update(todos.find(todo_id))
+        diesel::update(todos)
             .set(completed.eq(true))
+            .filter(id.eq(todo_id))
+            .filter(session_id.eq(user_session_id))
             .execute(&mut conn)
             .await
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;

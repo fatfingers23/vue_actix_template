@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
 use actix_session::storage::CookieSessionStore;
 use actix_session::SessionMiddleware;
@@ -11,7 +12,9 @@ use std::env;
 use vue_actix_template::api::controllers::hello_world_controller::{
     repeat_handler, say_hello_handler,
 };
-use vue_actix_template::api::controllers::todo_controller::{complete_todo_handler, create_todo_handler, delete_todo_handler, list_todos_handler};
+use vue_actix_template::api::controllers::todo_controller::{
+    complete_todo_handler, create_todo_handler, delete_todo_handler, list_todos_handler,
+};
 use vue_actix_template::container::Container;
 use vue_actix_template::middleware::get_user_id::GetUserId;
 
@@ -38,6 +41,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(GetUserId)
             .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_header()
+                    .allow_any_method(),
+            )
+            .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), session_key.clone())
                     .cookie_path("/".to_string())
                     .cookie_http_only(true)
@@ -48,12 +57,14 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api")
                     .service(say_hello_handler)
                     .service(repeat_handler)
-                    .service(web::scope("/todo")
-                        .service(list_todos_handler)
-                        .service(create_todo_handler)
-                        .service(delete_todo_handler)
-                        .service(complete_todo_handler)
-            ))
+                    .service(
+                        web::scope("/todo")
+                            .service(list_todos_handler)
+                            .service(create_todo_handler)
+                            .service(delete_todo_handler)
+                            .service(complete_todo_handler),
+                    ),
+            )
             .service(Files::new("/", "./spa").index_file("index.html"))
             .default_service(web::route().guard(guard::Not(guard::Get())).to(index))
     })
