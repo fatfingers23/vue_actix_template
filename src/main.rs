@@ -31,7 +31,9 @@ async fn main() -> std::io::Result<()> {
 
     let session_key = env::var("SESSION_KEY").expect("SESSION_KEY not set!");
     let session_key = Key::from(session_key.as_bytes());
-
+    //This template does not include SSL, but you can implement it like in this post.
+    // https://github.com/actix/examples/blob/master/https-tls/openssl-auto-le/src/main.rs
+    let SSL = false;
     let server = HttpServer::new(move || {
         App::new()
             .app_data(web::Data::from(container.todo_repository.clone()))
@@ -59,6 +61,6 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/", "./spa").index_file("index.html"))
             .default_service(web::route().guard(guard::Not(guard::Get())).to(index))
     })
-    .bind(("127.0.0.1", 8080));
+    .bind(("0.0.0.0", 8080));
     server.unwrap().run().await
 }
