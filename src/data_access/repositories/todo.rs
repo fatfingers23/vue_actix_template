@@ -1,11 +1,10 @@
 use crate::data_access::databases::postgresql::DBConn;
 use crate::data_access::diesel_models::todo::{CreateTodoDiesel, TodoDiesel};
 use crate::data_access::error::DieselRepositoryError;
-use crate::data_access::schema::todos::session_id;
+use crate::data_access::schema::todos::{completed, session_id};
 use crate::domain::dto::todo::{CreateTodo, Todo};
 use crate::domain::repositories::repository::RepositoryResult;
 use crate::domain::repositories::todo::TodoRepository;
-use actix_threadpool::run;
 use async_trait::async_trait;
 use diesel::prelude::*;
 use diesel::query_dsl::QueryDsl;
@@ -70,6 +69,22 @@ impl TodoRepository for TodoDieselRepository {
         diesel::delete(todos)
             .filter(id.eq(todo_id))
             .filter(session_id.eq(todo_session_id))
+            .execute(&mut conn)
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+        Ok(())
+    }
+
+    async fn complete_todo(&self, todo_id: i32) -> RepositoryResult<()> {
+        use crate::data_access::schema::todos::dsl::{id, todos};
+        let mut conn = self
+            .pool
+            .get()
+            .await
+            .map_err(|v| DieselRepositoryError::from(v).into_inner())?;
+
+        diesel::update(todos.find(todo_id))
+            .set(completed.eq(true))
             .execute(&mut conn)
             .await
             .map_err(|v| DieselRepositoryError::from(v).into_inner())?;

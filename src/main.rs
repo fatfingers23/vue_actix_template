@@ -11,7 +11,7 @@ use std::env;
 use vue_actix_template::api::controllers::hello_world_controller::{
     repeat_handler, say_hello_handler,
 };
-use vue_actix_template::api::controllers::todo_controller::{create_todo_handler, delete_todo_handler, list_todos_handler};
+use vue_actix_template::api::controllers::todo_controller::{complete_todo_handler, create_todo_handler, delete_todo_handler, list_todos_handler};
 use vue_actix_template::container::Container;
 use vue_actix_template::middleware::get_user_id::GetUserId;
 
@@ -27,7 +27,6 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
-    // let key = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
     let container = Container::new().await;
 
     let session_key = env::var("SESSION_KEY").expect("SESSION_KEY not set!");
@@ -53,6 +52,7 @@ async fn main() -> std::io::Result<()> {
                         .service(list_todos_handler)
                         .service(create_todo_handler)
                         .service(delete_todo_handler)
+                        .service(complete_todo_handler)
             ))
             .service(Files::new("/", "./spa").index_file("index.html"))
             .default_service(web::route().guard(guard::Not(guard::Get())).to(index))

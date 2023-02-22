@@ -3,7 +3,7 @@ use crate::domain::dto::todo::{CreateTodo, CreateTodoDTO, Todo};
 use crate::domain::error::{ApiError, CommonError};
 use crate::domain::repositories::todo::TodoRepository;
 use actix_session::Session;
-use actix_web::{get, web, HttpRequest, Result, post, delete, HttpResponse};
+use actix_web::{get, web, HttpRequest, Result, post, delete, HttpResponse, patch};
 use diesel::insert_into;
 use uuid::Uuid;
 
@@ -77,5 +77,26 @@ pub async fn delete_todo_handler(
             code: 500,
         })),
     }
+}
 
+#[patch("/complete/{todo_id}")]
+pub async fn complete_todo_handler(
+    req: HttpRequest,
+    todo_repo: web::Data<dyn TodoRepository>,
+) -> Result<HttpResponse, ApiError> {
+    let todo_id: i32 = match req.match_info().get("todo_id"){
+        Some(id) => id.parse().unwrap(),
+        None => return Err(ApiError::from(CommonError {
+            message: "No todo_id provided".to_string(),
+            code: 500,
+        })),
+    };
+    let result = todo_repo.complete_todo(todo_id).await;
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(e) => Err(ApiError::from(CommonError {
+            message: e.message,
+            code: 500,
+        })),
+    }
 }
