@@ -9,8 +9,13 @@ pub struct Todo {
     pub session_id: Uuid,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
 pub struct CreateTodo {
     pub description: String,
     pub session_id: Uuid,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct CreateTodoDTO {
+    pub description: String
 }
