@@ -3,3 +3,4 @@
 .env
 vue-actix-template.db
 spa
+certbot

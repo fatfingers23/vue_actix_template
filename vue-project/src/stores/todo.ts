@@ -2,7 +2,7 @@ import {ref} from 'vue';
 import {defineStore} from 'pinia';
 import type {Todo} from '@/dtos/todo';
 
-const baseApi = `${import.meta.env.VITE_API_URL ?? ''}/api`;
+const baseApi = `${import.meta.env.PROD ? '' : import.meta.env.VITE_API_URL ?? ''}/api`;
 
 
 export const useTodoStore = defineStore('todo', () => {

@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   db:
+    container_name: postgres-db
     image: postgres:15.2-alpine
     restart: on-failure
     environment:
@@ -14,11 +15,34 @@ services:
       - rusty-tub
   web:
     build: .
-    env_file: .env.docker
-    ports:
-      - '8080:8080'
+    container_name: actix-web
+    env_file: .env
+    environment:
+      - DOCKER_DATABASE_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres-db/postgres
     networks:
       - rusty-tub
+  nginx:
+    image: nginx:1.23.3-alpine
+    container_name: nginx
+    env_file: .env
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx:/etc/nginx/templates
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - rusty-tub
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    env_file: .env
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/log:/var/log/letsencrypt
+    command: certonly --webroot -w /var/www/certbot --email ${EMAIL} -d ${DOMAIN} --agree-tos
 volumes:
   postgres-db:
     driver: local

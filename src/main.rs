@@ -6,6 +6,7 @@ use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::{guard, Error, HttpServer};
 use actix_web::{web, App};
+use diesel::sql_types::Bool;
 use dotenv::dotenv;
 use std::env;
 use vue_actix_template::api::controllers::hello_world_controller::{
@@ -31,9 +32,12 @@ async fn main() -> std::io::Result<()> {
 
     let session_key = env::var("SESSION_KEY").expect("SESSION_KEY not set!");
     let session_key = Key::from(session_key.as_bytes());
-    //This template does not include SSL, but you can implement it like in this post.
-    // https://github.com/actix/examples/blob/master/https-tls/openssl-auto-le/src/main.rs
-    let SSL = false;
+
+    let ssl: bool = match env::var("SSL") {
+        Ok(val) => val.parse::<bool>().unwrap(),
+        Err(_e) => false,
+    };
+
     let server = HttpServer::new(move || {
         App::new()
             .app_data(web::Data::from(container.todo_repository.clone()))
@@ -48,8 +52,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), session_key.clone())
                     .cookie_path("/".to_string())
-                    .cookie_http_only(true)
-                    .cookie_secure(false)
+                    .cookie_http_only(!ssl)
+                    .cookie_secure(ssl)
                     .build(),
             )
             .service(
