@@ -62,7 +62,7 @@
         <li><a href="#docker-setup">Docker setup</a></li>
       </ul>
     </li>
-    <li><a href="#license">Points of intrest</a></li>
+    <li><a href="#license">Points of Interest</a></li>
     <li><a href="#license">License</a></li>
   </ol>
 </details>
@@ -219,7 +219,7 @@ _Below is some lose documentation on setting up the project with docker_
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-## Points of intrest
+## Points of Interest
  * In [main.rs:61](./src/main.rs) can see how the SPA is hosted. Also on line 62 is how I handle allowing the front end router to take over. Anything that would be 404 is sent to the `index.html`
  * [get_user_id.rs](./src/middleware/get_user_id.rs) is an example of using actix session store in a middleware to set a user id to save todos.
  * [postgres.rs](./src/data_access/databases/postgresql.rs) is an example of using diesel async to set up a connection pool. It is then consumed in [todo.rs](./src/data_access/repositories/todo.rs) 
