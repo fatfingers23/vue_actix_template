@@ -6,7 +6,6 @@ use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::{guard, Error, HttpServer};
 use actix_web::{web, App};
-use diesel::sql_types::Bool;
 use dotenv::dotenv;
 use std::env;
 use vue_actix_template::api::controllers::hello_world_controller::{
@@ -15,9 +14,6 @@ use vue_actix_template::api::controllers::hello_world_controller::{
 use vue_actix_template::api::controllers::todo_controller::todo_controller;
 use vue_actix_template::container::Container;
 use vue_actix_template::middleware::get_user_id::GetUserId;
-
-// #[cfg(test)]
-// mod tests;
 
 async fn index() -> Result<NamedFile, Error> {
     Ok(NamedFile::open("./spa/index.html")?)

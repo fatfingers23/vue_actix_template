@@ -39,6 +39,12 @@ npm run dev
 npm run build
 ```
 
+### Run a build that is placed in [../spa](../spa) for actix.
+
+```sh
+npm run build:dev
+```
+
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
 ```sh
